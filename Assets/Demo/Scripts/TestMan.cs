@@ -13,13 +13,13 @@ public class ItemSample
 }
 public class TestMan : MonoBehaviour
 {
-    private ProtocolRest _protocolRest;
+    private ProtocolUse _protocolRest;
 
     [SerializeField] private EndPointSO endPoint;
     // Start is called before the first frame update
     void Start()
     {
-        _protocolRest = new ProtocolRest();
+        _protocolRest = new ProtocolUse();
         Test2();
     }
 

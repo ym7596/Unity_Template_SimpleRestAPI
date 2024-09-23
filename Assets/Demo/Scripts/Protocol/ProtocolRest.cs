@@ -30,7 +30,7 @@ public class ProtocolRest
     // 웹패킷 필요 (보내고 받을 데이터가 있는 스크립트)
     // WebRequest를 만드는 곳.
 
-    private void SetHeaders(UnityWebRequest req, Dictionary<string, string> headers)
+    protected void SetHeaders(UnityWebRequest req, Dictionary<string, string> headers)
     {
         if (req == null || headers == null || headers.Count == 0)
             return;
@@ -44,7 +44,7 @@ public class ProtocolRest
         }
     }
 
-    private void SetBody(UnityWebRequest req, string body)
+    protected void SetBody(UnityWebRequest req, string body)
     {
         if (req == null || string.IsNullOrEmpty(body))
             return;
@@ -58,7 +58,7 @@ public class ProtocolRest
         }
     }
     
-    public IEnumerator Post(WebPacket packet,string body, Action<WebRequestResult,JObject> onComplete)
+    public virtual IEnumerator Post(WebPacket packet,string body, Action<WebRequestResult,JObject> onComplete)
     {
         yield return RequestBufferCo(ProtocolMethod.Post , packet,body, 
             (result, buffer) =>
@@ -82,7 +82,7 @@ public class ProtocolRest
             });
     }
 
-    public IEnumerator Get(WebPacket packet, Action<WebRequestResult,JObject> onComplete)
+    public virtual IEnumerator Get(WebPacket packet, Action<WebRequestResult,JObject> onComplete)
     {
         yield return RequestBufferCo(ProtocolMethod.Get, packet,null, 
             (result, buffer) =>
@@ -93,7 +93,6 @@ public class ProtocolRest
                 if (result == UnityWebRequest.Result.Success)
                 {
                     data = packet.Deserialize();
-                    reqResult = WebRequestResult.Success;
                     onComplete?.Invoke(WebRequestResult.Success,data);
                 }
                 else
@@ -105,8 +104,42 @@ public class ProtocolRest
                 
             });
     }
+    
+    public virtual IEnumerator GetArray(WebPacket packet, Action<WebRequestResult, JArray> onComplete)
+    {
+        yield return RequestBufferCo(ProtocolMethod.Get, packet, null,
+            (result, buffer) =>
+            {
+                JArray data = null;
+                packet.SetDownHandler(buffer);
 
-    public IEnumerator Put(WebPacket packet, Action<WebRequestResult,JObject> onComplete)
+                if (result == UnityWebRequest.Result.Success)
+                {
+                    try
+                    {
+                        // JSON 배열로 디시리얼라이즈 시도
+                        data = packet.DeserializeArray();
+                        onComplete?.Invoke(WebRequestResult.Success, data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"JSON Parsing Error: {ex.Message}");
+                        //적절히 에러 enum은 수정할것.
+                        onComplete?.Invoke(WebRequestResult.NotFound, null);
+                    }
+                }
+                else
+                {
+                    // 에러 처리
+                    data = default;
+                    Debug.Log($"Protocol Error : {result.ToString()}");
+                    //적절히 에러 enum은 수정할것.
+                    onComplete?.Invoke(WebRequestResult.ServerError, null);
+                }
+            });
+    }
+
+    public virtual IEnumerator Put(WebPacket packet, Action<WebRequestResult,JObject> onComplete)
     {
         yield return RequestBufferCo(ProtocolMethod.Put , packet,null, 
             (result, buffer) =>
@@ -131,7 +164,7 @@ public class ProtocolRest
             });
     }
 
-    private IEnumerator RequestBufferCo(ProtocolMethod method, WebPacket packet,
+    protected IEnumerator RequestBufferCo(ProtocolMethod method, WebPacket packet,
          string body,
         Action<UnityWebRequest.Result, DownloadHandlerBuffer> onComplete)
     {

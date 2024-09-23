@@ -37,8 +37,13 @@ namespace FatRaccoon.Network
         {
             Headers.Add("Content-Type","application/json");
         }
-      
-    
+
+        public virtual JArray DeserializeArray()
+        {
+            var json = downloadHandler?.text;
+
+            return string.IsNullOrEmpty(json) ? null : JArray.Parse(json);
+        }
 
         public virtual T Deserialize<T>()
         {
