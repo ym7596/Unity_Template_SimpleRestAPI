@@ -3,22 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "EndPointSO", menuName = "ProtocolData/EndPointSO", order = 1)]
-public class EndPointSO : ScriptableObject
+namespace FatRaccoon.Network
 {
-    public string authToken;
-    public List<EndPointData> urlDatas;
-}
+    [CreateAssetMenu(fileName = "EndPointSO", menuName = "ProtocolData/EndPointSO", order = 1)]
 
-[Serializable]
-public class EndPointData
-{
-    public EndPointType type;
-    public string url;
-}
+    public class EndPointSO : ScriptableObject
+    {
+        public string authToken;
+        public List<EndPointData> urlDatas;
+    }
 
-public enum EndPointType
-{
-    Test = 0,
-    Test2,
+    [Serializable]
+    public class EndPointData
+    {
+        public EndPointType type;
+        public string url;
+    }
+
+    public enum EndPointType
+    {
+        Test = 0,
+        Test2,
+    }
 }
